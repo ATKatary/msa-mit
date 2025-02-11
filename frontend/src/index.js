@@ -12,6 +12,7 @@ import JobPostings from "./pages/career/job-postings";
 import Info from "./pages/info";
 import Team from "./pages/team";
 import Resources from "./pages/resources";
+import Ramadan from "./pages/ramadan";
 import SignIn from "./pages/sign_in";
 import ReferralListings from "./pages/career/referral-listings";
 import { SECTIONS } from "./constants";
@@ -38,6 +39,7 @@ root.render(
           element={<ReferralListings />}
         />
         <Route path={`/${SECTIONS.SIGN_IN.TITLE}`} element={<SignIn />} />
+        <Route path={`/${SECTIONS.RAMADAN.TITLE}`} element={<Ramadan />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

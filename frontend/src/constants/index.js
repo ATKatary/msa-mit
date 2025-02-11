@@ -65,6 +65,10 @@ export const SECTIONS = {
   SIGN_IN: {
     TITLE: "sign-in",
   },
+
+  RAMADAN: {
+    TITLE: "ramadan",
+  },
 };
 
 export const THEME = {

@@ -37,6 +37,9 @@ export const NAV_GC = (props) => {
     {
       name: SECTIONS.SIGN_IN.TITLE,
     },
+    {
+      name: SECTIONS.RAMADAN.TITLE,
+    },
   ];
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
