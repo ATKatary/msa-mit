@@ -116,6 +116,7 @@ const Ramadan = () => {
           "am"
     }`;
 
+    // ahh
     // Format the time difference message to include both hours and minutes
     const timeDifferenceMessage = `${
       hours > 0 ? hours + " hour" + (hours > 1 ? "s" : "") + " and " : ""
