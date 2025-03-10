@@ -68,11 +68,8 @@ const getMondayToSundayForWeek = () => {
 
 const manuallySetSlots = {
   // maps dates to available slots
-  "2024-04-10": 0,
-  "2024-04-11": 0,
-  "2024-04-12": 0,
-  "2024-04-13": 0,
-  "2024-04-14": 0,
+  "2025-03-13": 20,
+  "2025-03-15": 20,
 };
 
 const Ramadan = () => {
@@ -139,16 +136,13 @@ const Ramadan = () => {
       try {
         let availableSlots;
         const response = await getSpecificDay(date);
-        // const manuallySetSlot = manuallySetSlots[date];
+        const manuallySetSlot = manuallySetSlots[date];
         const signUpCount = response[date] ? response[date].length : 0;
-        // if (manuallySetSlot !== undefined) {
-        //   availableSlots = manuallySetSlot - signUpCount;
-        // } else {
-        // }
-        if (date === "2025-03-12" || date === "2025-03-15") {
-          availableSlots = 20 - signUpCount;
+        if (manuallySetSlot !== undefined) {
+          availableSlots = manuallySetSlot - signUpCount;
+        } else {
+          availableSlots = 35 - signUpCount;
         }
-        availableSlots = 30 - signUpCount;
         return { date, signUpCount, availableSlots };
       } catch (error) {
         console.error("Failed to fetch sign-ups for day:", date, error);
