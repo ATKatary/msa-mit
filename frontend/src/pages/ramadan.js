@@ -148,7 +148,7 @@ const Ramadan = () => {
         if (date === "2025-03-12" || date === "2025-03-15") {
           availableSlots = 20 - signUpCount;
         }
-        availableSlots = 35 - signUpCount;
+        availableSlots = 30 - signUpCount;
         return { date, signUpCount, availableSlots };
       } catch (error) {
         console.error("Failed to fetch sign-ups for day:", date, error);
