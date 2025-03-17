@@ -19,9 +19,13 @@ import {
   Snackbar,
   Typography,
   Container,
+  FormControlLabel,
+  Checkbox,
+  IconButton,
+  Box
 } from "@mui/material";
 import { submitSignUp, getSpecificDay } from "../components/api/ramadan";
-
+import { Add, Delete } from "@mui/icons-material";
 import "../assets/css/utils.css";
 
 import Nav1 from "../components/nav1";
@@ -68,6 +72,7 @@ const getMondayToSundayForWeek = () => {
 
 const manuallySetSlots = {
   // maps dates to available slots
+  "2025-03-10": 40,
   "2025-03-13": 20,
   "2025-03-15": 20,
 };
@@ -78,8 +83,10 @@ const Ramadan = () => {
   const [userName, setUserName] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [userEmail, setUserEmail] = useState(""); // If want to use email
-  const [guestName, setGuestName] = useState(""); // If want to use guest Name
   const [mitID, setMitID] = useState(""); // If want to use ID
+  const [guestNames, setGuestNames] = useState([""]); // Start with one entry
+  const [isEC, setIsEC] = useState(false);
+  const [availableSlots, setAvailableSlots] = useState(0);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [confirmationOpen, setConfirmationOpen] = useState(false);
   const [userNameError, setUserNameError] = useState("");
@@ -144,6 +151,9 @@ const Ramadan = () => {
         } else {
           availableSlots = 35 - signUpCount;
         }
+        if (date === selectedDate) {
+            setAvailableSlots(availableSlots);
+        }
         return { date, signUpCount, availableSlots };
       } catch (error) {
         console.error("Failed to fetch sign-ups for day:", date, error);
@@ -153,48 +163,93 @@ const Ramadan = () => {
 
     const daysData = await Promise.all(daysDataPromises);
     setDays(daysData);
+
+    return daysData; 
   };
 
   useEffect(() => {
     fetchDaysData();
+    setGuestNames([""]); // Reset guest entries on refresh
   }, []);
 
-  const handleSignUpClick = (date) => {
+  useEffect(() => {
+    // Trim guests if switching from EC to non-EC
+    if (!isEC && guestNames.length > 3) {
+      setGuestNames(guestNames.slice(0, 3));
+    }
+  }, [isEC, guestNames]);
+
+  const handleSignUpClick = async (date) => {
+    const daysData = await fetchDaysData();
+    const selectedDay = daysData.find((day) => day.date === date);
+
+    if (selectedDay) {
+        setAvailableSlots(selectedDay.availableSlots); // Directly set the correct slot count
+    }
+
     setSelectedDate(date);
     setOpen(true); // Open the modal
   };
 
   const submitForm = async () => {
-    // Validate all fields again before submitting
+    let errorMessage = "";
+
     const isUserNameValid = validateUserName(userName);
-    const isGuestNameValid = validateGuestName(guestName);
+    if (!isUserNameValid) errorMessage = "Name is invalid.";
+
+    const areGuestNamesValid = validateGuestNames(guestNames);
+    if (!areGuestNamesValid) errorMessage = "Guest names are invalid. Check for empty fields or duplicate names.";
+
     const isEmailValid = validateEmail(userEmail);
+    if (!isEmailValid) errorMessage = "Invalid email format.";
+
     const isMitIDValid = validateMitID(mitID);
+    if (!isMitIDValid) errorMessage = "MIT ID must be 9 digits.";
 
     if (
       !isUserNameValid ||
-      !isGuestNameValid ||
+      !areGuestNamesValid ||
       !isEmailValid ||
       !isMitIDValid
     ) {
-      console.error("Validation failed");
+      console.error("Validation failed:", errorMessage);
       return; // Prevent form submission
     }
 
-    try {
-      await submitSignUp(selectedDate, userName, userEmail, mitID, guestName);
-      console.log("Sign-up successful");
-      setOpen(false);
-      setUserName("");
-      setUserEmail("");
-      setMitID("");
-      setGuestName("");
-      await fetchDaysData();
-      setOpenSnackbar(true);
-      showConfirmationDialog();
-    } catch (error) {
-      console.error("Failed to sign up:", error);
+    if (guestNames.length > availableSlots) {
+        setGuestNameError(`Only ${availableSlots} spot${availableSlots > 1 ? 's' : ''} remaining.`);
+        return;
     }
+
+    console.log("Submitting data:", {
+        date: selectedDate,
+        userName,
+        userEmail,
+        mitID,
+        guestNames
+    });
+    
+
+    try {
+        await Promise.all(
+            guestNames.map((guestName) =>
+                submitSignUp(selectedDate, userName, userEmail, mitID, guestName)
+            )
+            );
+            console.log("Sign-up successful");
+            setOpen(false);
+            setUserName("");
+            setUserEmail("");
+            setMitID("");
+            setGuestNames([""]); // Reset guest name fields
+            await fetchDaysData();
+            setOpenSnackbar(true);
+            showConfirmationDialog();
+    } catch (error) {
+        console.error(`Failed to sign up:`, error);
+    }
+      
+
   };
 
   const showConfirmationDialog = () => {
@@ -231,13 +286,19 @@ const Ramadan = () => {
     return true;
   };
 
-  const validateGuestName = (name) => {
-    if (!name.trim()) {
-      setGuestNameError("Guest name is required");
-      return false;
-    }
-    setGuestNameError("");
-    return true;
+  const validateGuestNames = (names) => {
+    const errors = new Array(names.length).fill(""); // Initialize error array
+
+    names.forEach((name, index) => {
+        if (!name.trim()) {
+            errors[index] = "Guest name is required.";
+        } else if (userName.trim().toLowerCase() === name.trim().toLowerCase()) {
+            errors[index] = "You cannot sign yourself up as a guest.";
+        }
+    });
+
+    setGuestNameError(errors); // Store errors for UI display
+    return errors.every((error) => !error); // Return true if no errors
   };
 
   return (
@@ -348,6 +409,8 @@ const Ramadan = () => {
             <DialogContent>
               <DialogContentText>
                 To sign up a guest, please fill out below:
+                <br />
+                <strong>Note:</strong> If your guest can't attend, please email us at <a href="mailto:msa-ramadan@mit.edu">msa-ramadan@mit.edu</a> to cancel. Failure to cancel may result in a penalty.
               </DialogContentText>
               <TextField
                 margin="dense"
@@ -395,26 +458,76 @@ const Ramadan = () => {
                 error={!!mitIDError} // Apply error styling if there's an error message
                 helperText={mitIDError} // Show the error message
               />
-              <TextField
+              <FormControlLabel
+                control={
+                    <Checkbox
+                    checked={isEC}
+                    onChange={(e) => setIsEC(e.target.checked)}
+                    name="isEC"
+                    color="primary"
+                    />
+                }
+                label="I am an Executive Committee member"
+              />
+            {guestNames.map((name, index) => (
+            <div key={index} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <TextField
                 margin="dense"
-                id="guest-name"
-                label="Guest Name"
+                label={`Guest Name ${index + 1}`}
                 type="text"
                 fullWidth
                 variant="standard"
-                value={guestName}
-                onChange={(event) => {
-                  const { value } = event.target;
-                  setGuestName(value); // Update the state
-                  validateGuestName(value); // Validate in real-time
+                value={name}
+                onChange={(e) => {
+                    const updatedGuestNames = [...guestNames];
+                    updatedGuestNames[index] = e.target.value;
+                    setGuestNames(updatedGuestNames);
+                    // Validate guest names in real-time
+                    const updatedErrors = [...guestNameError];
+                    if (!e.target.value.trim()) {
+                        updatedErrors[index] = "Guest name is required.";
+                    } else if (userName.trim().toLowerCase() === e.target.value.trim().toLowerCase()) {
+                        updatedErrors[index] = "You cannot sign yourself up as a guest.";
+                    } else {
+                        updatedErrors[index] = ""; // Clear error if valid
+                    }
+
+                    setGuestNameError(updatedErrors);
                 }}
-                error={!!guestNameError} // Apply error styling if there's an error message
-                helperText={guestNameError} // Show the error message
-              />
+                error={!!guestNameError[index]}
+                helperText={guestNameError[index] || ""}
+                />
+            </div>
+            ))}
+            <Box display="flex" gap={1} alignItems="center" mt={1}>
+            {guestNames.length < (isEC ? 5 : 3) && (
+                <IconButton onClick={() => setGuestNames([...guestNames, ""])}>
+                <Add />
+                </IconButton>
+            )}
+
+            {guestNames.length > 1 && (
+                <IconButton onClick={() => setGuestNames(guestNames.slice(0, -1))}>
+                <Delete />
+                </IconButton>
+            )}
+            </Box>
+
             </DialogContent>
-            <DialogActions>
+
+            <DialogActions sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+            <Typography variant="body2" color={availableSlots === 0 ? "error" : "textSecondary"}>
+                {availableSlots} spot{availableSlots !== 1 ? 's' : ''} remaining
+            </Typography>
+            <Box display="flex" gap={1}>
               <Button onClick={() => setOpen(false)}>Cancel</Button>
-              <Button onClick={submitForm}>Sign Up</Button>
+              <Button 
+                onClick={submitForm} 
+                disabled={availableSlots === 0 || guestNames.length > availableSlots}
+                >
+                Sign Up
+              </Button>
+            </Box>
             </DialogActions>
           </Dialog>
 
@@ -444,8 +557,10 @@ const Ramadan = () => {
             </DialogTitle>
             <DialogContent>
               <DialogContentText id="alert-dialog-description">
-                Your guest has been successfully signed up. Thank you for
+                Your sign up was successful. Thank you for
                 joining us!
+                <br />
+                <strong>Important:</strong> If your guest can't attend, please email us at <a href="mailto:msa-ramadan@mit.edu">msa-ramadan@mit.edu</a> to cancel.
               </DialogContentText>
             </DialogContent>
             <DialogActions>

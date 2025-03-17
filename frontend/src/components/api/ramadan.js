@@ -15,7 +15,7 @@ const makeApiCall = async (jsonData) => {
         } else {
             throw new Error(error.message);
         }
-    }
+}
 };
 
 export const getSpecificDay = async (date) => {
