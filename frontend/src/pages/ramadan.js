@@ -236,6 +236,10 @@ const Ramadan = () => {
       setGuestNameError("Guest name is required");
       return false;
     }
+    if (userName.trim().toLowerCase() === name.trim().toLowerCase()) {
+        setGuestNameError("Guest name cannot be the same as your name");
+        return false;
+    }
     setGuestNameError("");
     return true;
   };
