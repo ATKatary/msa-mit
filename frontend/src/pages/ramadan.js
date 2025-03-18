@@ -79,6 +79,7 @@ const manuallySetSlots = {
 
 const Ramadan = () => {
   const [days, setDays] = useState(getMondayToSundayForWeek());
+  const [formsMetadata, setFormsMetadata] = useState([]);
   const [open, setOpen] = useState(false);
   const [userName, setUserName] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
@@ -167,9 +168,25 @@ const Ramadan = () => {
     return daysData; 
   };
 
+  const fetchGoogleFormsData = () => {
+    const url = "https://script.google.com/macros/s/AKfycbwPYEmimdrUm9N0T2jcKvu9TRdIadZIm0cbAbPx11x-XdK_4G-vksciqqX2xSTml6G6/exec";
+    fetch(url, {
+      redirect: "follow",
+      method: "GET",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8",
+      }
+    })
+      .then(response => response.json())
+      .then(data => {
+        setFormsMetadata(data);
+        console.log("Fetched the following days:", data); 
+      })
+      .catch(error => console.error("Error fetching JSON:", error));
+  };
+  
   useEffect(() => {
-    fetchDaysData();
-    setGuestNames([""]); // Reset guest entries on refresh
+    fetchGoogleFormsData();
   }, []);
 
   useEffect(() => {
@@ -379,22 +396,22 @@ const Ramadan = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {days.map((day, index) => (
+              {formsMetadata.map((formJSON, index) => (
                 <TableRow key={index}>
                   <TableCell component="th" scope="row">
-                    {day.date}
+                    {formJSON.date}
                   </TableCell>
                   <TableCell align="right">
-                    {day.availableSlots !== "Error"
-                      ? Math.max(day.availableSlots, 0)
+                    {formJSON.remainingEntries !== "Error"
+                      ? Math.max(formJSON.remainingEntries, 0)
                       : "Error fetching slots"}
                   </TableCell>
                   <TableCell align="right">
                     <Button
                       variant="contained"
                       color="primary"
-                      disabled={day.availableSlots <= 0}
-                      onClick={() => handleSignUpClick(day.date)}
+                      disabled={formJSON.remainingEntries <= 0}
+                      onClick={() => window.open(formJSON.formUrl, "_blank")}
                     >
                       Sign Up
                     </Button>
