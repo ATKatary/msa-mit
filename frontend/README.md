@@ -86,3 +86,6 @@ Each card has the following attributes:
 - (optional) pic
 - (optional) media (a list of objects, each of which represents a social media link with a href and icon)
 Sister Nada has her own object with one card
+
+### Build and Deploy
+npm run build && ./deploy.sh
