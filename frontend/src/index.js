@@ -39,7 +39,7 @@ root.render(
           element={<ReferralListings />}
         />
         <Route path={`/${SECTIONS.SIGN_IN.TITLE}`} element={<SignIn />} />
-        <Route path={`/${SECTIONS.RAMADAN.TITLE}`} element={<Ramadan />} />
+        {/* <Route path={`/${SECTIONS.RAMADAN.TITLE}`} element={<Ramadan />} /> */}
       </Routes>
     </BrowserRouter>
   </React.StrictMode>
