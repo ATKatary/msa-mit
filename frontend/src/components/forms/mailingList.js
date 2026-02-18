@@ -25,7 +25,7 @@ const contact = (event, classType, setNotification) => {
     const classYear = document.getElementById(ID.CLASS_YEAR).value;
     
     const subject = "Main-list join request";
-    const message = "Sender would like to join mailing list\nTo add them please visit: https://msa.mit.edu/exec\nThe password is: msaadminpass!!\n".replace(/\n/g, '\\n'); 
+    const message = "Sender would like to join mailing list\nTo add them please visit: https://msa.mit.edu/exec\n".replace(/\n/g, '\\n'); 
 
     if (email === "") setNotification({value: "Email required to send message", notify: true});
     else if (name === "") setNotification({value: "Name required to send message", notify: true});
