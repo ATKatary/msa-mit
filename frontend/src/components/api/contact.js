@@ -11,7 +11,7 @@ export function sendMessage(email, subject, message, setNotification, meta = {})
         message: message, 
         fromEmail: email,
         fromEmailConfirm: "donoreply@msa.com",
-        reciepientEmails: ["azain@mit.edu", "mchnada@mit.edu", "thasic@mit.edu"],
+        reciepientEmails: ["azain@mit.edu", "mchnada@mit.edu", "thasic@mit.edu", "algraiw@mit.edu"],
         ...meta
     }
     get(url, body, res => {

@@ -71,13 +71,13 @@ then
     echo -e "\033[0;33mDeploying...\033[0m"
     start="$(date +%s)"
 
-    cd $appDir
-    npm run build
+    # Create destination directory
+    sudo mkdir -p /var/www/msa
+    
+    # Copy pre-built files
+    sudo cp -r $appDir/build/* /var/www/msa/
 
-    sudo mkdir /var/www/msa
-    sudo mv $appDir/build/* /var/www/msa/
-    rmdir build
-
+    # Create .htaccess file
     links=/var/www/msa/.htaccess
     sudo touch $links
     echo "Options -MultiViews" > $links
@@ -94,4 +94,4 @@ then
     echo -e "\033[0;32mDeployed successfully in ${runtime} seconds!\033[0m"
 else 
     echo -e "\033[0;33mDeployment halted!\033[0m"
-fi 
+fi
